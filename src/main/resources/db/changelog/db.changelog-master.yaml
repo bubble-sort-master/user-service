@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - include:
+      file: 001-create-users-table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 002-create-payment-cards-table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 003-add-indexes.yaml
+      relativeToChangelogFile: true

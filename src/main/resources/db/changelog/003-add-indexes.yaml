@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: gleb elopov
+      changes:
+        - createIndex:
+            tableName: users
+            indexName: idx_users_active
+            columns:
+              - column:
+                  name: active
+        - createIndex:
+            tableName: users
+            indexName: idx_users_name_surname
+            columns:
+              - column:
+                  name: name
+              - column:
+                  name: surname
+        - createIndex:
+            tableName: payment_cards
+            indexName: idx_payment_cards_user_id
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            tableName: payment_cards
+            indexName: idx_payment_cards_active_exp
+            columns:
+              - column:
+                  name: active
+              - column:
+                  name: expiration_date
+      rollback:
+        - dropIndex:
+            tableName: users
+            indexName: idx_users_name_surname
+        - dropIndex:
+            tableName: users
+            indexName: idx_users_active
+        - dropIndex:
+            tableName: payment_cards
+            indexName: idx_payment_cards_user_id
+        - dropIndex:
+            tableName: payment_cards
+            indexName: idx_payment_cards_active_exp
