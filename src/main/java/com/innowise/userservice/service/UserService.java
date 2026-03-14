@@ -6,13 +6,13 @@ import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
-  UserWithCardsDto createUser(UserCreateDto dto);
+  UserShortDto createUser(UserCreateDto dto);
 
   UserWithCardsDto getUserById(Long id);
 
   Page<UserShortDto> getAllUsers(String name, String surname, Pageable pageable);
 
-  UserWithCardsDto updateUser(Long id, UserUpdateDto dto);
+  UserShortDto updateUser(Long id, UserUpdateDto dto);
 
   void changeUserActiveStatus(Long id, boolean active);
 }

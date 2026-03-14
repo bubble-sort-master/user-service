@@ -5,6 +5,7 @@ import com.innowise.userservice.dto.UserShortDto;
 import com.innowise.userservice.dto.UserUpdateDto;
 import com.innowise.userservice.dto.UserWithCardsDto;
 import com.innowise.userservice.entity.User;
+import com.innowise.userservice.exception.DuplicateUserException;
 import com.innowise.userservice.exception.UserNotFoundException;
 import com.innowise.userservice.repository.PaymentCardRepository;
 import com.innowise.userservice.repository.UserRepository;
@@ -30,11 +31,15 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public UserWithCardsDto createUser(UserCreateDto dto) {
+  public UserShortDto createUser(UserCreateDto dto) {
+    if (userRepository.existsByEmail(dto.email())) {
+      throw new DuplicateUserException("User with email " + dto.email() + " already exists");
+    }
+
     User user = userMapper.toEntity(dto);
     user.setActive(true);
     User saved = userRepository.save(user);
-    return userMapper.toWithCardsDto(saved);
+    return userMapper.toShortDto(saved);
   }
 
   @Override
@@ -55,14 +60,14 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public UserWithCardsDto updateUser(Long id, UserUpdateDto dto) {
+  public UserShortDto updateUser(Long id, UserUpdateDto dto) {
     User user = userRepository.findById(id)
             .orElseThrow(() -> new  UserNotFoundException(id));
 
     userMapper.updateFromDto(dto, user);
 
     User updated = userRepository.save(user);
-    return userMapper.toWithCardsDto(updated);
+    return userMapper.toShortDto(updated);
   }
 
   @Override
