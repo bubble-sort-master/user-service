@@ -32,6 +32,6 @@ public interface PaymentCardMapper {
     }
     String first4 = number.substring(0,4);
     String last4 = number.substring(number.length() - 4);
-    return first4 + "**** **** " + last4;
+    return first4 + " **** **** " + last4;
   }
 }
