@@ -23,7 +23,7 @@ public interface UserRepository extends
   Page<User> findAll(Specification<User> spec, Pageable pageable);
 
   @EntityGraph(attributePaths = "paymentCards")
-  List<User> findAllWithCards();
+  Page<User> findAllWithCards(Specification<User> spec, Pageable pageable);
 
   @Modifying(clearAutomatically = true)
   @Query("UPDATE User u SET u.active = :active WHERE u.id = :id")

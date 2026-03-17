@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.hibernate.annotations.Formula;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -38,7 +39,7 @@ public class User extends BaseEntity{
   private Boolean active = true;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-  private List<PaymentCard> paymentCards;
+  private List<PaymentCard> paymentCards = new ArrayList<>();
 
   @Formula("(select count(c.id) from payment_card c where c.user_id = id)")
   private int cardsCount;
