@@ -48,6 +48,16 @@ public class UserController {
     return ResponseEntity.ok(page);
   }
 
+  @GetMapping("/with-cards")
+  public ResponseEntity<Page<UserWithCardsDto>> getAllUsersWithCards(
+          @RequestParam(required = false) String name,
+          @RequestParam(required = false) String surname,
+          @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+
+    Page<UserWithCardsDto> page = userService.getAllUsersWithCards(name, surname, pageable);
+    return ResponseEntity.ok(page);
+  }
+
   @PutMapping("/{id}")
   public ResponseEntity<UserShortDto> updateUser(
           @PathVariable Long id,

@@ -22,7 +22,7 @@ public interface UserMapper {
   @Mapping(target = "paymentCards", ignore = true)
   void updateFromDto(UserUpdateDto dto, @MappingTarget User entity);
 
-  @Mapping(target = "cardsCount", expression = "java(user.getPaymentCards() != null ? user.getPaymentCards().size() : 0)")
+  @Mapping(target = "cardsCount", source = "cardsCount")
   UserShortDto toShortDto(User user);
 
   UserWithCardsDto toWithCardsDto(User user);
