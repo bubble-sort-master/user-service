@@ -13,10 +13,10 @@ import com.innowise.userservice.repository.PaymentCardRepository;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.PaymentCardService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,14 +29,20 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   private static final int MAX_CARDS_PER_USER = 5;
 
+  private static final String USER_CARDS_CACHE     = "userCards";
+  private static final String CARDS_CACHE          = "cards";
+  private static final String CARDS_BY_USER_KEY    = "'cards::' + #userId";
+  private static final String CARD_BY_ID_KEY       = "'byId::' + #cardId";
+  private static final String CARD_BY_ID_FROM_RESULT = "'byId::' + #result.id";
+
   private final PaymentCardRepository cardRepository;
   private final UserRepository userRepository;
   private final PaymentCardMapper cardMapper;
-  private final CacheManager cacheManager;
 
   @Override
   @Transactional
-  @CacheEvict(value = "userCards", key = "'cards::' + #userId")
+  @CacheEvict(value = USER_CARDS_CACHE, key = CARDS_BY_USER_KEY)
+  @CachePut(value = CARDS_CACHE, key = CARD_BY_ID_FROM_RESULT)
   public CardShortDto createCard(Long userId, CardCreateDto dto) {
     if (!userRepository.existsById(userId)) {
       throw new UserNotFoundException(userId);
@@ -58,6 +64,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   }
 
   @Override
+  @Cacheable(value = CARDS_CACHE, key = CARD_BY_ID_KEY)
   public CardShortDto getCardById(Long cardId) {
     PaymentCard card = cardRepository.findById(cardId)
             .orElseThrow(() -> new CardNotFoundException(cardId));
@@ -65,7 +72,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   }
 
   @Override
-  @Cacheable(value = "userCards", key = "'cards::' + #userId")
+  @Cacheable(value = USER_CARDS_CACHE, key = CARDS_BY_USER_KEY)
   public List<CardShortDto> getCardsByUserId(Long userId) {
     if (!userRepository.existsById(userId)) {
       throw new UserNotFoundException(userId);
@@ -78,36 +85,25 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   @Override
   @Transactional
+  @Caching(evict = @CacheEvict(value = USER_CARDS_CACHE, allEntries = true),
+          put = @CachePut(value = CARDS_CACHE, key = CARD_BY_ID_KEY))
   public CardShortDto updateCard(Long cardId, CardUpdateDto dto) {
-
     PaymentCard card = cardRepository.findById(cardId)
             .orElseThrow(() -> new CardNotFoundException(cardId));
-    Long userId = card.getUser().getId();
     cardMapper.updateFromDto(dto, card);
     PaymentCard updated = cardRepository.save(card);
-
-    evictUserCardsCache(userId);
 
     return cardMapper.toShortDto(updated);
   }
 
   @Override
   @Transactional
+  @Caching(evict = @CacheEvict(value = USER_CARDS_CACHE, allEntries = true),
+          put = @CachePut(value = CARDS_CACHE, key = CARD_BY_ID_KEY))
   public void changeCardActiveStatus(Long cardId, boolean active) {
     PaymentCard card = cardRepository.findById(cardId)
             .orElseThrow(() -> new CardNotFoundException(cardId));
-    Long userId = card.getUser().getId();
-
     card.setActive(active);
     cardRepository.save(card);
-
-    evictUserCardsCache(userId);
-  }
-
-  private void evictUserCardsCache(Long userId) {
-    Cache cache = cacheManager.getCache("userCards");
-    if (cache != null) {
-      cache.evict("cards::" + userId);
-    }
   }
 }
