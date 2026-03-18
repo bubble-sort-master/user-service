@@ -7,7 +7,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends
@@ -17,13 +16,10 @@ public interface UserRepository extends
   boolean existsByEmail(String email);
 
   @EntityGraph(attributePaths = "paymentCards")
-  Optional<User> findByIdWithCards(Long id);
+  Optional<User> findWithPaymentCardsById(Long id);
 
   @EntityGraph(attributePaths = "paymentCards")
   Page<User> findAll(Specification<User> spec, Pageable pageable);
-
-  @EntityGraph(attributePaths = "paymentCards")
-  Page<User> findAllWithCards(Specification<User> spec, Pageable pageable);
 
   @Modifying(clearAutomatically = true)
   @Query("UPDATE User u SET u.active = :active WHERE u.id = :id")

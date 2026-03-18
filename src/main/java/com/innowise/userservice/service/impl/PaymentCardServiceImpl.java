@@ -29,6 +29,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   private static final int MAX_CARDS_PER_USER = 5;
 
+  private static final String USERS_CACHE          = "users";
   private static final String USER_CARDS_CACHE     = "userCards";
   private static final String CARDS_CACHE          = "cards";
   private static final String CARDS_BY_USER_KEY    = "'cards::' + #userId";
@@ -41,8 +42,12 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   @Override
   @Transactional
-  @CacheEvict(value = USER_CARDS_CACHE, key = CARDS_BY_USER_KEY)
-  @CachePut(value = CARDS_CACHE, key = CARD_BY_ID_FROM_RESULT)
+  @Caching(evict = {
+          @CacheEvict(value = USER_CARDS_CACHE, key = CARDS_BY_USER_KEY),
+          @CacheEvict(value = USERS_CACHE, allEntries = true)
+          },
+          put = @CachePut(value = CARDS_CACHE, key = CARD_BY_ID_FROM_RESULT)
+  )
   public CardShortDto createCard(Long userId, CardCreateDto dto) {
     if (!userRepository.existsById(userId)) {
       throw new UserNotFoundException(userId);
@@ -85,8 +90,12 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   @Override
   @Transactional
-  @Caching(evict = @CacheEvict(value = USER_CARDS_CACHE, allEntries = true),
-          put = @CachePut(value = CARDS_CACHE, key = CARD_BY_ID_KEY))
+  @Caching(evict = {
+          @CacheEvict(value = USER_CARDS_CACHE, allEntries = true),
+          @CacheEvict(value = USERS_CACHE, allEntries = true)
+          },
+          put = @CachePut(value = CARDS_CACHE, key = CARD_BY_ID_KEY)
+  )
   public CardShortDto updateCard(Long cardId, CardUpdateDto dto) {
     PaymentCard card = cardRepository.findById(cardId)
             .orElseThrow(() -> new CardNotFoundException(cardId));
@@ -98,8 +107,11 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   @Override
   @Transactional
-  @Caching(evict = @CacheEvict(value = USER_CARDS_CACHE, allEntries = true),
-          put = @CachePut(value = CARDS_CACHE, key = CARD_BY_ID_KEY))
+  @Caching(evict = {
+          @CacheEvict(value = USER_CARDS_CACHE, allEntries = true),
+          @CacheEvict(value = CARDS_CACHE, key = CARD_BY_ID_KEY),
+          @CacheEvict(value = USERS_CACHE, allEntries = true)
+  })
   public void changeCardActiveStatus(Long cardId, boolean active) {
     PaymentCard card = cardRepository.findById(cardId)
             .orElseThrow(() -> new CardNotFoundException(cardId));
