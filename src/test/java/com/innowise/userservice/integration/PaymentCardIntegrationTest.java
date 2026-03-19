@@ -6,6 +6,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -126,5 +127,13 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
                                 }
                                 """, extraCardNumber)))
             .andExpect(status().isConflict());
+  }
+
+  @Test
+  void getCardById_notFound_shouldReturn404() throws Exception {
+    mockMvc.perform(get("/api/cards/99999"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.title").value("Card Not Found"))
+            .andExpect(jsonPath("$.detail").value(containsString("Card not found with id: 99999")));
   }
 }
