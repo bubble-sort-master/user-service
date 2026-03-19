@@ -30,39 +30,15 @@ jobs:
       - name: Build with Maven
         run: mvn clean compile
 
-  test:
-    name: Test
+  test-and-sonar:
+    name: Test + SonarCloud Analysis
     runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Run tests and generate coverage report
-        run: mvn verify
-      - name: Upload JaCoCo coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: target/site/jacoco/jacoco.xml
-
-  sonar:
-    name: SonarQube Analysis
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -77,30 +53,22 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Download JaCoCo coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: jacoco-report
-          path: target/site/jacoco/
-
-      - name: Compile project (нужен для sonar.java.binaries)
-        run: mvn clean compile -DskipTests
-
-      - name: Run SonarCloud analysis with coverage
+      - name: Run tests + coverage + Sonar analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn sonar:sonar \
+          mvn verify sonar:sonar \
             -Dsonar.organization=bubble-sort-master \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.projectKey=bubble-sort-master_user-service \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.java.binaries=target/classes        
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.qualitygate.wait=true
 
   docker:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    needs: sonar
+    needs: test-and-sonar
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
