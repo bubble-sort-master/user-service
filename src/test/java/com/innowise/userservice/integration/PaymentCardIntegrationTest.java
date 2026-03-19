@@ -2,42 +2,18 @@ package com.innowise.userservice.integration;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Testcontainers
-@ActiveProfiles("test")
-@Transactional
-class PaymentCardIntegrationTest {
+class PaymentCardIntegrationTest extends AbstractIntegrationTest {
 
-  @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-          .withDatabaseName("testdb")
-          .withUsername("test")
-          .withPassword("test");
-
-  @DynamicPropertySource
-  static void configureProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", postgres::getJdbcUrl);
-    registry.add("spring.datasource.username", postgres::getUsername);
-    registry.add("spring.datasource.password", postgres::getPassword);
-  }
-
-  @Autowired private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
   private static final String USER_CREATE_JSON = """
             {
@@ -90,12 +66,12 @@ class PaymentCardIntegrationTest {
     mockMvc.perform(put("/api/cards/{cardId}", cardId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""
-                                {
-                                  "holder": "Updated Holder Name",
-                                  "expirationDate": "2035-12-31",
-                                  "active": true
-                                }
-                                """))
+                                    {
+                                      "holder": "Updated Holder Name",
+                                      "expirationDate": "2035-12-31",
+                                      "active": true
+                                    }
+                                    """))
             .andExpect(status().isOk());
 
     // change status
@@ -106,21 +82,20 @@ class PaymentCardIntegrationTest {
 
   @Test
   void createCard_maxLimitExceeded_shouldReturnBadRequest() throws Exception {
-    //create user
     String userLocation = mockMvc.perform(post("/api/users")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""
-                            {
-                              "name": "CardTest",
-                              "surname": "User",
-                              "birthDate": "1995-05-15",
-                              "email": "card.integration@test.com"
-                            }
-                            """))
+                                {
+                                  "name": "CardTest",
+                                  "surname": "User",
+                                  "birthDate": "1995-05-15",
+                                  "email": "card.maxlimit@test.com"
+                                }
+                                """))
             .andExpect(status().isCreated())
             .andReturn().getResponse().getHeader("Location");
-    Long userId = Long.parseLong(userLocation.substring(userLocation.lastIndexOf('/') + 1));
 
+    Long userId = Long.parseLong(userLocation.substring(userLocation.lastIndexOf('/') + 1));
 
     int maxCards = 5;
 
@@ -130,26 +105,26 @@ class PaymentCardIntegrationTest {
       mockMvc.perform(post("/api/users/{userId}/cards", userId)
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(String.format("""
-                                {
-                                  "number": "%s",
-                                  "holder": "Card Integration Test %d",
-                                  "expirationDate": "2035-12-31"
-                                }
-                                """, cardNumber, i)))
+                                    {
+                                      "number": "%s",
+                                      "holder": "Card Integration Test %d",
+                                      "expirationDate": "2035-12-31"
+                                    }
+                                    """, cardNumber, i)))
               .andExpect(status().isCreated());
     }
 
-// exceeding limit
+    // exceeding limit
     String extraCardNumber = "4111111111119999";
     mockMvc.perform(post("/api/users/{userId}/cards", userId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(String.format("""
-                        {
-                          "number": "%s",
-                          "holder": "Extra Card",
-                          "expirationDate": "2035-12-31"
-                        }
-                        """, extraCardNumber)))
+                                {
+                                  "number": "%s",
+                                  "holder": "Extra Card",
+                                  "expirationDate": "2035-12-31"
+                                }
+                                """, extraCardNumber)))
             .andExpect(status().isConflict());
   }
 }
