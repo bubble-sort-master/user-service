@@ -63,22 +63,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
+
       - name: Cache Maven dependencies
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+
       - name: Download JaCoCo coverage report
         uses: actions/download-artifact@v4
         with:
           name: jacoco-report
           path: target/site/jacoco/
+
+      - name: Compile project (нужен для sonar.java.binaries)
+        run: mvn clean compile -DskipTests
+
       - name: Run SonarCloud analysis with coverage
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -87,7 +94,8 @@ jobs:
             -Dsonar.organization=bubble-sort-master \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.projectKey=bubble-sort-master_user-service \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.java.binaries=target/classes        
 
   docker:
     name: Build and Push Docker Image
