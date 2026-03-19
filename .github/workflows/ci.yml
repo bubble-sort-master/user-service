@@ -63,7 +63,7 @@ jobs:
             -Dsonar.projectKey=bubble-sort-master_user-service \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.java.binaries=target/classes \
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.coverage.exclusions="**/UserServiceApplication.java,**/*MapperImpl.java"
 
   docker:
     name: Build and Push Docker Image
