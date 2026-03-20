@@ -27,27 +27,24 @@ class UserIntegrationTest extends AbstractIntegrationTest {
 
   @Test
   void fullUserFlow_shouldWorkEndToEnd() throws Exception {
-    // create
     String location = mockMvc.perform(post("/api/users")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(USER_CREATE_JSON))
             .andExpect(status().isCreated())
             .andReturn().getResponse().getHeader("Location");
 
+    assert location != null;
     Long userId = Long.parseLong(location.substring(location.lastIndexOf('/') + 1));
 
-    // get by id
     mockMvc.perform(get("/api/users/{id}", userId))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.birthDate").value("1995-05-15"))
             .andExpect(jsonPath("$.cards").value(nullValue()));
 
-    // get all
     mockMvc.perform(get("/api/users?page=0&size=20"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[0].cards").value(nullValue()));
 
-    // update
     mockMvc.perform(put("/api/users/{id}", userId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""
@@ -60,15 +57,18 @@ class UserIntegrationTest extends AbstractIntegrationTest {
                                 """))
             .andExpect(status().isOk());
 
-    // change status
-    mockMvc.perform(patch("/api/users/{id}/active", userId)
-                    .param("active", "false"))
+    mockMvc.perform(patch("/api/users/{id}", userId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                                {
+                                  "active": false
+                                }
+                                """))
             .andExpect(status().isNoContent());
   }
 
   @Test
   void createUser_duplicateEmail_shouldReturnConflict() throws Exception {
-    // first creation
     mockMvc.perform(post("/api/users")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""
@@ -81,7 +81,6 @@ class UserIntegrationTest extends AbstractIntegrationTest {
                                 """))
             .andExpect(status().isCreated());
 
-    // duplicate attempt
     mockMvc.perform(post("/api/users")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""
@@ -110,16 +109,37 @@ class UserIntegrationTest extends AbstractIntegrationTest {
     mockMvc.perform(post("/api/users")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""
-                    {
-                      "name": "",
-                      "surname": "",
-                      "birthDate": "2000-01-01",
-                      "email": "not-an-email"
-                    }
-                    """))
+                        {
+                          "name": "",
+                          "surname": "",
+                          "birthDate": "2000-01-01",
+                          "email": "not-an-email"
+                        }
+                        """))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.title").value("Validation Failed"))
             .andExpect(jsonPath("$.errors").isArray())
             .andExpect(jsonPath("$.errors", hasSize(greaterThanOrEqualTo(1))));
+  }
+
+  @Test
+  void changeUserActiveStatus_invalidBody_shouldReturn400() throws Exception {
+    String location = mockMvc.perform(post("/api/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(USER_CREATE_JSON))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getHeader("Location");
+
+    assert location != null;
+    Long userId = Long.parseLong(location.substring(location.lastIndexOf('/') + 1));
+
+    mockMvc.perform(patch("/api/users/{id}", userId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.title").value("Validation Failed"))
+            .andExpect(jsonPath("$.errors").isArray())
+            .andExpect(jsonPath("$.errors[0]").value(containsString("active")))
+            .andExpect(jsonPath("$.errors[0]").value(containsString("required")));
   }
 }
