@@ -10,7 +10,7 @@ public interface UserService {
 
   UserWithCardsDto getUserById(Long id);
 
-  Page<UserShortDto> getAllUsers(String name, String surname, Pageable pageable);
+  Page<UserWithCardsDto> getAllUsers(String name, String surname, Pageable pageable);
 
   Page<UserWithCardsDto> getAllUsersWithCards(String name, String surname, Pageable pageable);
 
