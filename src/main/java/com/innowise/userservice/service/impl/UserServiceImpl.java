@@ -76,6 +76,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public Page<UserWithCardsDto> getAllUsersWithCards(String name, String surname, Pageable pageable) {
+    Specification<User> spec = UserSpecifications.searchByNameAndSurname(name, surname);
+
+    return userRepository.findAllWithCards(spec, pageable)
+            .map(userMapper::toWithCardsDto);
+  }
+
+  @Override
   @Transactional
   @CacheEvict(value = USERS_CACHE, allEntries = true)
   public UserShortDto updateUser(Long id, UserUpdateDto dto) {

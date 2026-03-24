@@ -14,6 +14,8 @@ public interface UserService {
 
   Page<UserWithCardsDto> getAllUsersWithCards(String name, String surname, Pageable pageable);
 
+  Page<UserWithCardsDto> getAllUsersWithCards(String name, String surname, Pageable pageable);
+
   UserShortDto updateUser(Long id, UserUpdateDto dto);
 
   void changeUserActiveStatus(Long id, boolean active);
