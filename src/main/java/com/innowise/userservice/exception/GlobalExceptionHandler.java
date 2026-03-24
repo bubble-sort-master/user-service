@@ -79,9 +79,19 @@ public class GlobalExceptionHandler {
   }
 
   private Long extractId(String message) {
+    if (message == null) return null;
+
+    int start = message.indexOf("id: ");
+    if (start == -1) return null;
+
+    String tail = message.substring(start + 4).trim();
+    int end = tail.indexOf(' ');
+
+    String idStr = (end == -1) ? tail : tail.substring(0, end);
+
     try {
-      return Long.parseLong(message.replaceAll(".*id: (\\d+).*", "$1"));
-    } catch (Exception e) {
+      return Long.parseLong(idStr);
+    } catch (NumberFormatException e) {
       return null;
     }
   }
