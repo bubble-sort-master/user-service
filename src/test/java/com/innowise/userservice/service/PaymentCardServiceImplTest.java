@@ -16,6 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -150,19 +155,46 @@ class PaymentCardServiceImplTest {
 
   @Test
   void changeCardActiveStatus_success() {
-    when(cardRepository.findById(10L)).thenReturn(Optional.of(cardEntity));
+    doNothing().when(cardRepository).setActive(10L, false);
 
     cardService.changeCardActiveStatus(10L, false);
 
-    verify(cardRepository).save(cardEntity);
-    assertThat(cardEntity.getActive()).isFalse();
+    verify(cardRepository).setActive(10L, false);
   }
 
   @Test
-  void changeCardActiveStatus_notFound_throwsCardNotFoundException() {
-    when(cardRepository.findById(999L)).thenReturn(Optional.empty());
+  void changeCardActiveStatus_cardNotFound_throwsCardNotFoundException() {
+    doThrow(new CardNotFoundException(999L)).when(cardRepository).setActive(999L, true);
 
     assertThatThrownBy(() -> cardService.changeCardActiveStatus(999L, true))
             .isInstanceOf(CardNotFoundException.class);
+  }
+
+  @Test
+  void getAllCards_success() {
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<PaymentCard> page = new PageImpl<>(List.of(cardEntity), pageable, 1);
+
+    when(cardRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+    when(cardMapper.toShortDto(cardEntity)).thenReturn(shortDto);
+
+    Page<CardShortDto> result = cardService.getAllCards(null, null, pageable);
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().getFirst()).isEqualTo(shortDto);
+  }
+
+  @Test
+  void getAllCards_withFilters_success() {
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<PaymentCard> page = new PageImpl<>(List.of(cardEntity), pageable, 1);
+
+    when(cardRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+    when(cardMapper.toShortDto(cardEntity)).thenReturn(shortDto);
+
+    Page<CardShortDto> result = cardService.getAllCards("John", "Doe", pageable);
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().getFirst()).isEqualTo(shortDto);
   }
 }

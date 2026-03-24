@@ -4,6 +4,9 @@ import com.innowise.userservice.dto.*;
 import com.innowise.userservice.service.PaymentCardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -43,6 +46,16 @@ public class PaymentCardController {
     return ResponseEntity.ok(cardService.getCardsByUserId(userId));
   }
 
+  @GetMapping("/cards")
+  public ResponseEntity<Page<CardShortDto>> getAllCards(
+          @RequestParam(required = false) String name,
+          @RequestParam(required = false) String surname,
+          @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+
+    Page<CardShortDto> page = cardService.getAllCards(name, surname, pageable);
+    return ResponseEntity.ok(page);
+  }
+
   @PutMapping("/cards/{cardId}")
   public ResponseEntity<CardShortDto> updateCard(
           @PathVariable Long cardId,
@@ -51,12 +64,12 @@ public class PaymentCardController {
     return ResponseEntity.ok(cardService.updateCard(cardId, dto));
   }
 
-  @PatchMapping("/cards/{cardId}/active")
+  @PatchMapping("/cards/{cardId}")
   public ResponseEntity<Void> changeCardActiveStatus(
           @PathVariable Long cardId,
-          @RequestParam boolean active) {
+          @Valid @RequestBody CardActiveStatusDto statusDto) {
 
-    cardService.changeCardActiveStatus(cardId, active);
+    cardService.changeCardActiveStatus(cardId, statusDto.active());
     return ResponseEntity.noContent().build();
   }
 }
