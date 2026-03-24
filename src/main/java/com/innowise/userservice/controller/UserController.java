@@ -39,22 +39,12 @@ public class UserController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<UserShortDto>> getAllUsers(
+  public ResponseEntity<Page<UserWithCardsDto>> getAllUsers(
           @RequestParam(required = false) String name,
           @RequestParam(required = false) String surname,
           @PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
-    Page<UserShortDto> page = userService.getAllUsers(name, surname, pageable);
-    return ResponseEntity.ok(page);
-  }
-
-  @GetMapping("/with-cards")
-  public ResponseEntity<Page<UserWithCardsDto>> getAllUsersWithCards(
-          @RequestParam(required = false) String name,
-          @RequestParam(required = false) String surname,
-          @PageableDefault(size = 20, sort = "id") Pageable pageable) {
-
-    Page<UserWithCardsDto> page = userService.getAllUsersWithCards(name, surname, pageable);
+    Page<UserWithCardsDto> page = userService.getAllUsers(name, surname, pageable);
     return ResponseEntity.ok(page);
   }
 
@@ -66,12 +56,12 @@ public class UserController {
     return ResponseEntity.ok(userService.updateUser(id, dto));
   }
 
-  @PatchMapping("/{id}/active")
+  @PatchMapping("/{id}")
   public ResponseEntity<Void> changeUserActiveStatus(
           @PathVariable Long id,
-          @RequestParam boolean active) {
+          @Valid @RequestBody UserActiveStatusDto statusDto) {
 
-    userService.changeUserActiveStatus(id, active);
+    userService.changeUserActiveStatus(id, statusDto.active());
     return ResponseEntity.noContent().build();
   }
 }

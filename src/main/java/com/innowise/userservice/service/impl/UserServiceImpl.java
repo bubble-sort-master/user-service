@@ -25,8 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-  private static final String USERS_CACHE                  = "users";
-  private static final String USER_BY_ID_KEY               = "'byId::' + #id";
+  private static final String USERS_CACHE    = "users";
+  private static final String USER_BY_ID_KEY = "'byId::' + #id";
 
   private static final String ALL_USERS_SHORT_KEY =
           "'all::short::name:' + (#name ?: '') + '::surname:' + (#surname ?: '') + '::page:' + #pageable.pageNumber + '::size:' + #pageable.pageSize";
@@ -54,25 +54,16 @@ public class UserServiceImpl implements UserService {
   @Override
   @Cacheable(value = USERS_CACHE, key = USER_BY_ID_KEY)
   public UserWithCardsDto getUserById(Long id) {
-    User user = userRepository.findByIdWithCards(id)
+    User user = userRepository.findWithPaymentCardsById(id)
             .orElseThrow(() -> new UserNotFoundException(id));
     return userMapper.toWithCardsDto(user);
   }
 
   @Override
   @Cacheable(value = USERS_CACHE, key = ALL_USERS_SHORT_KEY)
-  public Page<UserShortDto> getAllUsers(String name, String surname, Pageable pageable) {
+  public Page<UserWithCardsDto> getAllUsers(String name, String surname, Pageable pageable) {
     Specification<User> spec = UserSpecifications.searchByNameAndSurname(name, surname);
     return userRepository.findAll(spec, pageable)
-            .map(userMapper::toShortDto);
-  }
-
-  @Override
-  @Cacheable(value = USERS_CACHE, key = ALL_USERS_WITH_CARDS_KEY)
-  public Page<UserWithCardsDto> getAllUsersWithCards(String name, String surname, Pageable pageable) {
-    Specification<User> spec = UserSpecifications.searchByNameAndSurname(name, surname);
-
-    return userRepository.findAllWithCards(spec, pageable)
             .map(userMapper::toWithCardsDto);
   }
 
