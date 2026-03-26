@@ -7,7 +7,6 @@ spring:
   cache:
     type: none
 jwt:
-  secret: your-super-secret-key-at-least-32-characters-long-for-hmac-sha256
-  access-token-expiration: 900000
-  refresh-token-expiration: 604800000
-test-flag: loaded
+  secret: ${JWT_SECRET:super-secret-key-at-least-32-characters-long-for-hmac-sha256}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
