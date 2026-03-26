@@ -11,3 +11,7 @@ spring:
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
+jwt:
+  secret: your-super-secret-key-at-least-32-characters-long-for-hmac-sha256
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000

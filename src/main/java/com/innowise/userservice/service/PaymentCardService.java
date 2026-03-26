@@ -20,4 +20,6 @@ public interface PaymentCardService {
   CardShortDto updateCard(Long cardId, CardUpdateDto dto);
 
   void changeCardActiveStatus(Long cardId, boolean active);
+
+  boolean isCardOwner(Long cardId, Long userId);
 }

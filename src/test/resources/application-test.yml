@@ -1,6 +1,13 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
   jpa:
     hibernate:
       ddl-auto: none
   cache:
     type: none
+jwt:
+  secret: your-super-secret-key-at-least-32-characters-long-for-hmac-sha256
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+test-flag: loaded

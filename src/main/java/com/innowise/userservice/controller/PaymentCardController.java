@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -21,6 +22,7 @@ public class PaymentCardController {
   private final PaymentCardService cardService;
 
   @PostMapping("/users/{userId}/cards")
+  @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and #userId.toString() == authentication.name)")
   public ResponseEntity<CardShortDto> createCard(
           @PathVariable Long userId,
           @Valid @RequestBody CardCreateDto dto,
@@ -37,16 +39,22 @@ public class PaymentCardController {
   }
 
   @GetMapping("/cards/{cardId}")
+  @PreAuthorize(
+          "hasRole('ADMIN') or " +
+          "@paymentCardService.isCardOwner(#cardId, T(java.lang.Long).valueOf(authentication.name))"
+  )
   public ResponseEntity<CardShortDto> getCardById(@PathVariable Long cardId) {
     return ResponseEntity.ok(cardService.getCardById(cardId));
   }
 
   @GetMapping("/users/{userId}/cards")
+  @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and #userId.toString() == authentication.name)")
   public ResponseEntity<List<CardShortDto>> getCardsByUserId(@PathVariable Long userId) {
     return ResponseEntity.ok(cardService.getCardsByUserId(userId));
   }
 
   @GetMapping("/cards")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Page<CardShortDto>> getAllCards(
           @RequestParam(required = false) String name,
           @RequestParam(required = false) String surname,
@@ -57,6 +65,7 @@ public class PaymentCardController {
   }
 
   @PutMapping("/cards/{cardId}")
+  @PreAuthorize("hasRole('ADMIN') or @paymentCardService.isCardOwner(#cardId, T(java.lang.Long).valueOf(authentication.name))")
   public ResponseEntity<CardShortDto> updateCard(
           @PathVariable Long cardId,
           @Valid @RequestBody CardUpdateDto dto) {
@@ -65,6 +74,7 @@ public class PaymentCardController {
   }
 
   @PatchMapping("/cards/{cardId}")
+  @PreAuthorize("hasRole('ADMIN') or @paymentCardService.isCardOwner(#cardId, T(java.lang.Long).valueOf(authentication.name))")
   public ResponseEntity<Void> changeCardActiveStatus(
           @PathVariable Long cardId,
           @Valid @RequestBody CardActiveStatusDto statusDto) {

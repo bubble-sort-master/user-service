@@ -15,6 +15,8 @@ public interface PaymentCardRepository extends JpaRepository<PaymentCard, Long> 
 
   List<PaymentCard> findByUserId(Long userId);
 
+  boolean existsByIdAndUserId(Long cardId, Long userId);
+
   @EntityGraph(attributePaths = "user")
   Page<PaymentCard> findAll(Specification<PaymentCard> spec, Pageable pageable);
 
