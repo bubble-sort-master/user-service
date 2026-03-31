@@ -134,4 +134,13 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   public void changeCardActiveStatus(Long cardId, boolean active) {
     cardRepository.setActive(cardId, active);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isCardOwner(Long cardId, Long userId) {
+    if (cardId == null || userId == null) {
+      return false;
+    }
+    return cardRepository.existsByIdAndUserId(cardId, userId);
+  }
 }
