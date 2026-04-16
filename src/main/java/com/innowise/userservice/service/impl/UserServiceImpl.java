@@ -20,6 +20,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -27,6 +32,7 @@ public class UserServiceImpl implements UserService {
 
   private static final String USERS_CACHE    = "users";
   private static final String USER_BY_ID_KEY = "'byId::' + #id";
+  private static final String USER_BY_EMAIL_KEY = "'byEmail::' + #email";
 
   private static final String ALL_USERS_SHORT_KEY =
           "'all::short::name:' + (#name ?: '') + '::surname:' + (#surname ?: '') + '::page:' + #pageable.pageNumber + '::size:' + #pageable.pageSize";
@@ -60,6 +66,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Cacheable(value = USERS_CACHE, key = USER_BY_EMAIL_KEY)
+  public UserWithCardsDto getUserByEmail(String email){
+    User user = userRepository.findWithPaymentCardsByEmail(email)
+            .orElseThrow(() -> new UserNotFoundException(email));
+    return userMapper.toWithCardsDto(user);
+  }
+
+  @Override
   @Cacheable(value = USERS_CACHE, key = ALL_USERS_SHORT_KEY)
   public Page<UserWithCardsDto> getAllUsers(String name, String surname, Pageable pageable) {
     Specification<User> spec = UserSpecifications.searchByNameAndSurname(name, surname);
@@ -87,5 +101,15 @@ public class UserServiceImpl implements UserService {
       throw new UserNotFoundException(id);
     }
     userRepository.setActive(id, active);
+  }
+
+  @Override
+  public List<UserWithCardsDto> getUsersByIds(List<Long> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return List.of();
+    }
+    return userRepository.findWithPaymentCardsByIdIn(ids).stream()
+            .map(userMapper::toWithCardsDto)
+            .toList();
   }
 }

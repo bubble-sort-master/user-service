@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ import java.util.List;
 @EqualsAndHashCode(exclude = "paymentCards", callSuper = true)
 @Entity
 @Table(name = "users")
+@SQLDelete(sql = "UPDATE users SET active = false WHERE id = ?")
+@SQLRestriction("active = true")
 public class User extends BaseEntity{
 
   @Id

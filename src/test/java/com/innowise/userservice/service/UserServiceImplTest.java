@@ -150,4 +150,55 @@ class UserServiceImplTest {
     assertThatThrownBy(() -> userService.changeUserActiveStatus(999L, true))
             .isInstanceOf(UserNotFoundException.class);
   }
+
+  @Test
+  void getUserByEmail_success() {
+    when(userRepository.findWithPaymentCardsByEmail("john.doe@example.com"))
+            .thenReturn(Optional.of(userEntity));
+    when(userMapper.toWithCardsDto(userEntity)).thenReturn(withCardsDto);
+
+    UserWithCardsDto result = userService.getUserByEmail("john.doe@example.com");
+
+    assertThat(result).isEqualTo(withCardsDto);
+    verify(userRepository).findWithPaymentCardsByEmail("john.doe@example.com");
+  }
+
+  @Test
+  void getUserByEmail_notFound_throwsUserNotFoundException() {
+    when(userRepository.findWithPaymentCardsByEmail("unknown@example.com"))
+            .thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> userService.getUserByEmail("unknown@example.com"))
+            .isInstanceOf(UserNotFoundException.class);
+  }
+
+  @Test
+  void getUsersByIds_success() {
+    List<Long> ids = List.of(1L, 2L);
+    User secondUser = new User();
+    secondUser.setId(2L);
+    secondUser.setEmail("second@example.com");
+
+    when(userRepository.findWithPaymentCardsByIdIn(ids))
+            .thenReturn(List.of(userEntity, secondUser));
+    when(userMapper.toWithCardsDto(userEntity)).thenReturn(withCardsDto);
+    when(userMapper.toWithCardsDto(secondUser)).thenReturn(
+            new UserWithCardsDto(2L, "Second", "User", LocalDate.now(),
+                    "second@example.com", true, List.of())
+    );
+
+    List<UserWithCardsDto> result = userService.getUsersByIds(ids);
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(0).id()).isEqualTo(1L);
+    assertThat(result.get(1).id()).isEqualTo(2L);
+    verify(userRepository).findWithPaymentCardsByIdIn(ids);
+  }
+
+  @Test
+  void getUsersByIds_nullOrEmpty_returnsEmptyList() {
+    assertThat(userService.getUsersByIds(null)).isEmpty();
+    assertThat(userService.getUsersByIds(List.of())).isEmpty();
+    verifyNoInteractions(userRepository);
+  }
 }
