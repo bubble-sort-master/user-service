@@ -12,6 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
+
 /**
  * REST controller for managing users.
  * Provides CRUD operations and active status management for user entities.
@@ -65,6 +67,19 @@ public class UserController {
   }
 
   /**
+   * Retrieves a user by email.
+   * <p>Admins or the user themselves can access.
+   *
+   * @param email user email
+   * @return user with payment cards
+   */
+  @GetMapping("/by-email/{email}")
+  @PreAuthorize("hasRole('ADMIN') or @userAuthorization.isOwnerByEmail(#email, authentication)")
+  public ResponseEntity<UserWithCardsDto> getUserByEmail(@PathVariable String email) {
+    return ResponseEntity.ok(userService.getUserByEmail(email));
+  }
+
+  /**
    * Retrieves all users with optional filtering by name and surname and pagination.
    * Only accessible by administrators.
    *
@@ -115,6 +130,32 @@ public class UserController {
           @Valid @RequestBody UserActiveStatusDto statusDto) {
 
     userService.changeUserActiveStatus(id, statusDto.active());
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Retrieves multiple users by their IDs.
+   * <p>Admin only.
+   *
+   * @param ids list of user IDs
+   * @return list of users with payment cards
+   */
+  @GetMapping("/bulk")
+  @PreAuthorize(IS_ADMIN)
+  public ResponseEntity<List<UserWithCardsDto>> getUsersByIds(
+          @RequestParam("ids") List<Long> ids) {
+
+    return ResponseEntity.ok(userService.getUsersByIds(ids));
+  }
+  /**
+   * Soft Delete user by its ID.
+   *
+   * @param id identifier of the user.
+   */
+  @DeleteMapping("/{id}")
+  @PreAuthorize(IS_ADMIN_OR_USER_OWNER)
+  public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    userService.changeUserActiveStatus(id, false);
     return ResponseEntity.noContent().build();
   }
 }

@@ -4,6 +4,8 @@ import com.innowise.userservice.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 /**
  * Service interface for user business logic.
  * Handles user creation, retrieval, updating and active status management.
@@ -25,6 +27,14 @@ public interface UserService {
    * @return the user with payment cards
    */
   UserWithCardsDto getUserById(Long id);
+
+  /**
+   * Retrieves a user by email including their payment cards.
+   *
+   * @param email the email of the user
+   * @return the user with payment cards
+   */
+  UserWithCardsDto getUserByEmail(String email);
 
   /**
    * Retrieves all users with optional filtering and pagination.
@@ -52,4 +62,12 @@ public interface UserService {
    * @param active the new active status
    */
   void changeUserActiveStatus(Long id, boolean active);
+
+  /**
+   * Retrieves multiple users by their IDs.
+   *
+   * @param ids list of user IDs
+   * @return list of users with payment cards (empty list if input is null or empty)
+   */
+  List<UserWithCardsDto> getUsersByIds(List<Long> ids);
 }
