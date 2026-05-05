@@ -4,12 +4,11 @@ import com.innowise.userservice.dto.*;
 import com.innowise.userservice.entity.User;
 import org.mapstruct.*;
 
-import java.util.List;
-
 @Mapper(
         componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        uses = PaymentCardMapper.class
 )
 public interface UserMapper {
 
@@ -25,5 +24,6 @@ public interface UserMapper {
   @Mapping(target = "cardsCount", source = "cardsCount")
   UserShortDto toShortDto(User user);
 
+  @Mapping(target = "cards", source = "paymentCards")
   UserWithCardsDto toWithCardsDto(User user);
 }

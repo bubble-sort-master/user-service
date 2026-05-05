@@ -40,12 +40,14 @@ class UserIntegrationTest extends AbstractIntegrationTest {
                     .header("Authorization", bearer(userToken)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.birthDate").value("1995-05-15"))
-            .andExpect(jsonPath("$.cards").value(nullValue()));
+            .andExpect(jsonPath("$.cards").isArray())
+            .andExpect(jsonPath("$.cards").isEmpty());
 
     mockMvc.perform(get("/api/users?page=0&size=20")
                     .header("Authorization", bearer(adminToken)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.content[0].cards").value(nullValue()));
+            .andExpect(jsonPath("$.content[0].cards").isArray())
+            .andExpect(jsonPath("$.content[0].cards").isEmpty());
 
     mockMvc.perform(put("/api/users/{id}", userId)
                     .header("Authorization", bearer(userToken))
@@ -136,22 +138,22 @@ class UserIntegrationTest extends AbstractIntegrationTest {
   }
 
   @Test
-  void unauthenticatedUser_shouldGet401() throws Exception {
+  void unauthenticatedUser_shouldCreateUser() throws Exception {
     mockMvc.perform(post("/api/users")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(USER_CREATE_JSON))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isCreated());
   }
 
   @Test
-  void regularUser_cannotCreateUser() throws Exception {
+  void regularUser_canCreateUser() throws Exception {
     String userToken = createUserToken(100L);
 
     mockMvc.perform(post("/api/users")
                     .header("Authorization", bearer(userToken))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(USER_CREATE_JSON))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isCreated());
   }
 
   @Test
@@ -172,7 +174,8 @@ class UserIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(userId))
             .andExpect(jsonPath("$.email").value("user.integration@test.com"))
-            .andExpect(jsonPath("$.cards").value(nullValue()));
+            .andExpect(jsonPath("$.cards").isArray())
+            .andExpect(jsonPath("$.cards").isEmpty());
 
     String userToken = createUserToken(userId);
     mockMvc.perform(get("/api/users/by-email/user.integration@test.com")

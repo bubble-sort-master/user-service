@@ -31,14 +31,12 @@ public class UserController {
 
   /**
    * Creates a new user in the system.
-   * Only administrators are allowed to create users.
    *
    * @param dto the user creation data
    * @param uriBuilder used to build the Location header
    * @return the created user with HTTP 201 Created status
    */
   @PostMapping
-  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<UserShortDto> createUser(
           @Valid @RequestBody UserCreateDto dto,
           UriComponentsBuilder uriBuilder) {
