@@ -1,5 +1,6 @@
 package com.innowise.userservice;
 
+import com.innowise.userservice.config.InternalAuthProperties;
 import com.innowise.userservice.config.JwtConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing
-@EnableConfigurationProperties(JwtConfig.class)
+@EnableConfigurationProperties({JwtConfig.class, InternalAuthProperties.class})
 public class UserServiceApplication {
 
   public static void main(String[] args) {

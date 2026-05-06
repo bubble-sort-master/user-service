@@ -85,7 +85,7 @@ public class PaymentCardController {
    */
   @GetMapping("/users/{userId}/cards")
   @PreAuthorize(IS_ADMIN_OR_USER_OWN_RESOURCE)
-  public ResponseEntity<List<CardShortDto>> getCardsByUserId(@PathVariable Long userId) {
+  public ResponseEntity<CardsResponse> getCardsByUserId(@PathVariable Long userId) {
     return ResponseEntity.ok(cardService.getCardsByUserId(userId));
   }
 
@@ -100,12 +100,12 @@ public class PaymentCardController {
    */
   @GetMapping("/cards")
   @PreAuthorize(IS_ADMIN)
-  public ResponseEntity<Page<CardShortDto>> getAllCards(
+  public ResponseEntity<PageResponse<CardShortDto>> getAllCards(
           @RequestParam(required = false) String name,
           @RequestParam(required = false) String surname,
           @PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
-    Page<CardShortDto> page = cardService.getAllCards(name, surname, pageable);
+    PageResponse<CardShortDto> page = cardService.getAllCards(name, surname, pageable);
     return ResponseEntity.ok(page);
   }
 

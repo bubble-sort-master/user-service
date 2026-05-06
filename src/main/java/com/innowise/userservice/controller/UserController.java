@@ -88,12 +88,12 @@ public class UserController {
    */
   @GetMapping
   @PreAuthorize(IS_ADMIN)
-  public ResponseEntity<Page<UserWithCardsDto>> getAllUsers(
+  public ResponseEntity<PageResponse<UserWithCardsDto>> getAllUsers(
           @RequestParam(required = false) String name,
           @RequestParam(required = false) String surname,
           @PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
-    Page<UserWithCardsDto> page = userService.getAllUsers(name, surname, pageable);
+    PageResponse<UserWithCardsDto> page = userService.getAllUsers(name, surname, pageable);
     return ResponseEntity.ok(page);
   }
 

@@ -44,7 +44,7 @@ public interface UserService {
    * @param pageable pagination information
    * @return paginated list of users
    */
-  Page<UserWithCardsDto> getAllUsers(String name, String surname, Pageable pageable);
+  PageResponse<UserWithCardsDto> getAllUsers(String name, String surname, Pageable pageable);
 
   /**
    * Updates user information.
