@@ -1,7 +1,6 @@
 package com.innowise.userservice.service;
 
 import com.innowise.userservice.dto.*;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
