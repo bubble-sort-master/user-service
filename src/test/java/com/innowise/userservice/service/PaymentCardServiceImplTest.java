@@ -16,11 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,11 +29,15 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PaymentCardServiceImplTest {
 
-  @Mock private PaymentCardRepository cardRepository;
-  @Mock private UserRepository userRepository;
-  @Mock private PaymentCardMapper cardMapper;
+  @Mock
+  private PaymentCardRepository cardRepository;
+  @Mock
+  private UserRepository userRepository;
+  @Mock
+  private PaymentCardMapper cardMapper;
 
-  @InjectMocks private PaymentCardServiceImpl cardService;
+  @InjectMocks
+  private PaymentCardServiceImpl cardService;
 
   private CardCreateDto createDto;
   private CardUpdateDto updateDto;
@@ -120,9 +120,10 @@ class PaymentCardServiceImplTest {
     when(cardRepository.findByUserId(1L)).thenReturn(List.of(cardEntity));
     when(cardMapper.toShortDto(any(PaymentCard.class))).thenReturn(shortDto);
 
-    List<CardShortDto> result = cardService.getCardsByUserId(1L);
+    CardsResponse response = cardService.getCardsByUserId(1L);
 
-    assertThat(result).hasSize(1);
+    assertThat(response.content()).hasSize(1);
+    assertThat(response.content().get(0)).isEqualTo(shortDto);
   }
 
   @Test
@@ -173,28 +174,32 @@ class PaymentCardServiceImplTest {
   @Test
   void getAllCards_success() {
     Pageable pageable = PageRequest.of(0, 20);
-    Page<PaymentCard> page = new PageImpl<>(List.of(cardEntity), pageable, 1);
+    Page<PaymentCard> cardPage = new PageImpl<>(List.of(cardEntity), pageable, 1);
 
-    when(cardRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+    when(cardRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), eq(pageable)))
+            .thenReturn(cardPage);
     when(cardMapper.toShortDto(cardEntity)).thenReturn(shortDto);
 
-    Page<CardShortDto> result = cardService.getAllCards(null, null, pageable);
+    PageResponse<CardShortDto> result = cardService.getAllCards(null, null, pageable);
 
-    assertThat(result.getContent()).hasSize(1);
-    assertThat(result.getContent().getFirst()).isEqualTo(shortDto);
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().get(0)).isEqualTo(shortDto);
+    assertThat(result.totalElements()).isEqualTo(1);
   }
 
   @Test
   void getAllCards_withFilters_success() {
     Pageable pageable = PageRequest.of(0, 20);
-    Page<PaymentCard> page = new PageImpl<>(List.of(cardEntity), pageable, 1);
+    Page<PaymentCard> cardPage = new PageImpl<>(List.of(cardEntity), pageable, 1);
 
-    when(cardRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+    when(cardRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), eq(pageable)))
+            .thenReturn(cardPage);
     when(cardMapper.toShortDto(cardEntity)).thenReturn(shortDto);
 
-    Page<CardShortDto> result = cardService.getAllCards("John", "Doe", pageable);
+    PageResponse<CardShortDto> result = cardService.getAllCards("John", "Doe", pageable);
 
-    assertThat(result.getContent()).hasSize(1);
-    assertThat(result.getContent().getFirst()).isEqualTo(shortDto);
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().get(0)).isEqualTo(shortDto);
+    assertThat(result.totalElements()).isEqualTo(1);
   }
 }

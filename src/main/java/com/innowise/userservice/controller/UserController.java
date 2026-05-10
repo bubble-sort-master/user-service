@@ -4,7 +4,6 @@ import com.innowise.userservice.dto.*;
 import com.innowise.userservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -31,14 +30,12 @@ public class UserController {
 
   /**
    * Creates a new user in the system.
-   * Only administrators are allowed to create users.
    *
    * @param dto the user creation data
    * @param uriBuilder used to build the Location header
    * @return the created user with HTTP 201 Created status
    */
   @PostMapping
-  @PreAuthorize(IS_ADMIN)
   public ResponseEntity<UserShortDto> createUser(
           @Valid @RequestBody UserCreateDto dto,
           UriComponentsBuilder uriBuilder) {
@@ -90,12 +87,12 @@ public class UserController {
    */
   @GetMapping
   @PreAuthorize(IS_ADMIN)
-  public ResponseEntity<Page<UserWithCardsDto>> getAllUsers(
+  public ResponseEntity<PageResponse<UserWithCardsDto>> getAllUsers(
           @RequestParam(required = false) String name,
           @RequestParam(required = false) String surname,
           @PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
-    Page<UserWithCardsDto> page = userService.getAllUsers(name, surname, pageable);
+    PageResponse<UserWithCardsDto> page = userService.getAllUsers(name, surname, pageable);
     return ResponseEntity.ok(page);
   }
 

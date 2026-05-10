@@ -10,3 +10,9 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD}
       timeout: 2000
+management:
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true

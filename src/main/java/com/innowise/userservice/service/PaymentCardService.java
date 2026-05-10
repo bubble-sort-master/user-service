@@ -1,10 +1,7 @@
 package com.innowise.userservice.service;
 
 import com.innowise.userservice.dto.*;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
 
 /**
  * Service interface for payment card business logic.
@@ -35,7 +32,7 @@ public interface PaymentCardService {
    * @param userId the ID of the user
    * @return list of payment cards
    */
-  List<CardShortDto> getCardsByUserId(Long userId);
+  CardsResponse getCardsByUserId(Long userId);
 
   /**
    * Retrieves all payment cards with optional filtering and pagination.
@@ -45,7 +42,7 @@ public interface PaymentCardService {
    * @param pageable pagination and sorting information
    * @return paginated list of payment cards
    */
-  Page<CardShortDto> getAllCards(String name, String surname, Pageable pageable);
+  PageResponse<CardShortDto> getAllCards(String name, String surname, Pageable pageable);
 
   /**
    * Updates an existing payment card.

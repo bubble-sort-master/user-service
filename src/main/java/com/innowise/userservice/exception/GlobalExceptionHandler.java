@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -73,6 +74,17 @@ public class GlobalExceptionHandler {
             HttpStatus.FORBIDDEN,
             "Forbidden",
             "You don't have permission to access this resource",
+            request
+    );
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
+  }
+
+  @ExceptionHandler(MissingRequestHeaderException.class)
+  public ResponseEntity<ProblemDetail> handleMissingRequestHeader(MissingRequestHeaderException ex, WebRequest request) {
+    ProblemDetail problem = createProblemDetail(
+            HttpStatus.FORBIDDEN,
+            "Forbidden",
+            "Required header '" + ex.getHeaderName() + "' is missing",
             request
     );
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);

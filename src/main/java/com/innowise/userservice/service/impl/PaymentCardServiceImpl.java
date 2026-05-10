@@ -1,8 +1,6 @@
 package com.innowise.userservice.service.impl;
 
-import com.innowise.userservice.dto.CardCreateDto;
-import com.innowise.userservice.dto.CardShortDto;
-import com.innowise.userservice.dto.CardUpdateDto;
+import com.innowise.userservice.dto.*;
 import com.innowise.userservice.entity.PaymentCard;
 import com.innowise.userservice.entity.User;
 import com.innowise.userservice.exception.CardNotFoundException;
@@ -24,8 +22,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -36,12 +32,17 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   private static final String USERS_CACHE          = "users";
   private static final String USER_CARDS_CACHE     = "userCards";
   private static final String CARDS_CACHE          = "cards";
-  private static final String CARDS_BY_USER_KEY    = "'cards::' + #userId";
+  private static final String CARDS_BY_USER_KEY = "'byUser::' + #userId";
   private static final String CARD_BY_ID_KEY       = "'byId::' + #cardId";
   private static final String CARD_BY_ID_FROM_RESULT = "'byId::' + #result.id";
-  private static final String ALL_CARDS_KEY_PREFIX = "'allCards::'";
+
+
   private static final String ALL_CARDS_KEY_PATTERN =
-          ALL_CARDS_KEY_PREFIX + " + #name + '::' + #surname + '::' + #pageable";
+          "'allCards::name:' + (#name ?: '') " +
+                  "+ '::surname:' + (#surname ?: '') " +
+                  "+ '::page:' + #pageable.pageNumber " +
+                  "+ '::size:' + #pageable.pageSize " +
+                  "+ '::sort:' + #pageable.sort.toString()";
 
   private final PaymentCardRepository cardRepository;
   private final UserRepository userRepository;
@@ -86,23 +87,28 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   @Override
   @Cacheable(value = USER_CARDS_CACHE, key = CARDS_BY_USER_KEY)
-  public List<CardShortDto> getCardsByUserId(Long userId) {
+  public CardsResponse getCardsByUserId(Long userId) {
     if (!userRepository.existsById(userId)) {
       throw new UserNotFoundException(userId);
     }
-    return cardRepository.findByUserId(userId)
+
+    var list = cardRepository.findByUserId(userId)
             .stream()
             .map(cardMapper::toShortDto)
             .toList();
+
+    return new CardsResponse(list);
   }
 
   @Override
   @Cacheable(value = CARDS_CACHE, key = ALL_CARDS_KEY_PATTERN)
-  public Page<CardShortDto> getAllCards(String name, String surname, Pageable pageable) {
+  public PageResponse<CardShortDto> getAllCards(String name, String surname, Pageable pageable) {
     Specification<PaymentCard> spec = PaymentCardSpecifications.searchByUserNameAndSurname(name, surname);
 
-    return cardRepository.findAll(spec, pageable)
+    Page<CardShortDto> page = cardRepository.findAll(spec, pageable)
             .map(cardMapper::toShortDto);
+
+    return PageResponse.from(page);
   }
 
   @Override

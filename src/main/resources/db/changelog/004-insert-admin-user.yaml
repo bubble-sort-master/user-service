@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4
+      author: gleb elopov
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: name
+                  value: "Admin"
+              - column:
+                  name: surname
+                  value: "Admin"
+              - column:
+                  name: birth_date
+                  valueDate: 2005-11-08
+              - column:
+                  name: email
+                  value: "admin@example.com"
+              - column:
+                  name: active
+                  valueBoolean: "true"
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_DATE
+              - column:
+                  name: updated_at
+                  valueComputed: CURRENT_DATE
+      rollback:
+        - delete:
+            tableName: users
+            where: "id = 1"
+  - changeSet:
+      id: 5
+      author: gleb elopov
+      changes:
+        - sql:
+            sql: "SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));"
+      rollback:
+        - sql:
+            sql: "SELECT setval('users_id_seq', 1);"

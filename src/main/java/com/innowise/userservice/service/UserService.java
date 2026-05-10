@@ -1,7 +1,6 @@
 package com.innowise.userservice.service;
 
 import com.innowise.userservice.dto.*;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -44,7 +43,7 @@ public interface UserService {
    * @param pageable pagination information
    * @return paginated list of users
    */
-  Page<UserWithCardsDto> getAllUsers(String name, String surname, Pageable pageable);
+  PageResponse<UserWithCardsDto> getAllUsers(String name, String surname, Pageable pageable);
 
   /**
    * Updates user information.

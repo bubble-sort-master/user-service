@@ -7,7 +7,6 @@ import com.innowise.userservice.exception.UserNotFoundException;
 import com.innowise.userservice.mapper.UserMapper;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.impl.UserServiceImpl;
-import com.innowise.userservice.specification.UserSpecifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,10 +26,13 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
-  @Mock private UserRepository userRepository;
-  @Mock private UserMapper userMapper;
+  @Mock
+  private UserRepository userRepository;
+  @Mock
+  private UserMapper userMapper;
 
-  @InjectMocks private UserServiceImpl userService;
+  @InjectMocks
+  private UserServiceImpl userService;
 
   private UserCreateDto createDto;
   private UserUpdateDto updateDto;
@@ -103,15 +104,17 @@ class UserServiceImplTest {
   @Test
   void getAllUsers_success() {
     Pageable pageable = PageRequest.of(0, 20, Sort.by("id"));
-    Page<User> page = new PageImpl<>(List.of(userEntity));
+    Page<User> userPage = new PageImpl<>(List.of(userEntity), pageable, 1);
 
-    when(userRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+    when(userRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), eq(pageable)))
+            .thenReturn(userPage);
     when(userMapper.toWithCardsDto(any(User.class))).thenReturn(withCardsDto);
 
-    Page<UserWithCardsDto> result = userService.getAllUsers("John", "Doe", pageable);
+    PageResponse<UserWithCardsDto> result = userService.getAllUsers("John", "Doe", pageable);
 
-    assertThat(result.getContent()).hasSize(1);
-    assertThat(result.getContent().getFirst()).isEqualTo(withCardsDto);
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().get(0)).isEqualTo(withCardsDto);
+    assertThat(result.totalElements()).isEqualTo(1);
   }
 
   @Test

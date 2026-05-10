@@ -1,9 +1,6 @@
 package com.innowise.userservice.service.impl;
 
-import com.innowise.userservice.dto.UserCreateDto;
-import com.innowise.userservice.dto.UserShortDto;
-import com.innowise.userservice.dto.UserUpdateDto;
-import com.innowise.userservice.dto.UserWithCardsDto;
+import com.innowise.userservice.dto.*;
 import com.innowise.userservice.entity.User;
 import com.innowise.userservice.exception.DuplicateUserException;
 import com.innowise.userservice.exception.UserNotFoundException;
@@ -21,9 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -34,11 +28,12 @@ public class UserServiceImpl implements UserService {
   private static final String USER_BY_ID_KEY = "'byId::' + #id";
   private static final String USER_BY_EMAIL_KEY = "'byEmail::' + #email";
 
-  private static final String ALL_USERS_SHORT_KEY =
-          "'all::short::name:' + (#name ?: '') + '::surname:' + (#surname ?: '') + '::page:' + #pageable.pageNumber + '::size:' + #pageable.pageSize";
-
   private static final String ALL_USERS_WITH_CARDS_KEY =
-          "'all::withcards::name:' + (#name ?: '') + '::surname:' + (#surname ?: '') + '::page:' + #pageable.pageNumber + '::size:' + #pageable.pageSize";
+          "'all::withcards::name:' + (#name ?: '') " +
+                  "+ '::surname:' + (#surname ?: '') " +
+                  "+ '::page:' + #pageable.pageNumber " +
+                  "+ '::size:' + #pageable.pageSize " +
+                  "+ '::sort:' + #pageable.sort.toString()";
 
   private final UserRepository userRepository;
   private final UserMapper userMapper;
@@ -74,11 +69,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  @Cacheable(value = USERS_CACHE, key = ALL_USERS_SHORT_KEY)
-  public Page<UserWithCardsDto> getAllUsers(String name, String surname, Pageable pageable) {
+  @Cacheable(value = USERS_CACHE, key = ALL_USERS_WITH_CARDS_KEY)
+  public PageResponse<UserWithCardsDto> getAllUsers(String name, String surname, Pageable pageable) {
     Specification<User> spec = UserSpecifications.searchByNameAndSurname(name, surname);
-    return userRepository.findAll(spec, pageable)
+
+    Page<UserWithCardsDto> page = userRepository.findAll(spec, pageable)
             .map(userMapper::toWithCardsDto);
+
+    return PageResponse.from(page);
   }
 
   @Override
