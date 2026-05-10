@@ -61,7 +61,7 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
     mockMvc.perform(get("/api/users/{userId}/cards", userId)
                     .header("Authorization", bearer(userToken)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].numberMasked").exists());
+            .andExpect(jsonPath("$.content[0].numberMasked").exists());
 
     mockMvc.perform(put("/api/cards/{cardId}", cardId)
                     .header("Authorization", bearer(userToken))
